@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Premium Light Theme Palette */
+  --color-background-app: #f4f7fe;          /* Trending softer light blue-gray */
+  --color-background-primary: #ffffff;      /* Cards, Sidebar, Topbar */
+  --color-background-secondary: #f8fafc;    /* Very Light Gray for inputs/badges */
+  
+  /* Brand Gradients & Colors */
+  --color-brand-primary: #530f00;           /* Dark Brown */
+  --color-brand-secondary: #8c2800;         /* Crimson/Burgundy */
+  --color-brand-accent: #fd6533;            /* Orange Accent */
+  --color-brand-danger: #ff1300;            /* Bright Red */
+  --color-brand-success: #10b981;           /* Emerald Green */
+  --color-brand-warning: #f59e0b;           /* Amber */
+  
+  /* Linear Gradient */
+  --brand-gradient: linear-gradient(135deg, #FF1300 0%, #cc0f00 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #cc0f00 0%, #990b00 100%);
+
+  /* Borders */
+  --color-border-primary: #e2e8f0;          /* Soft slate border */
+  --color-border-secondary: #cbd5e1;        /* Darker Border */
+
+  /* Text Colors */
+  --color-text-primary: #0f172a;            /* Deep Slate Charcoal */
+  --color-text-secondary: #475569;          /* Medium Slate Gray */
+  --color-text-muted: #94a3b8;              /* Light Slate Gray */
+  --color-text-inverse: #ffffff;            /* White */
+
+  /* Semantic Text Colors */
+  --color-text-success: #059669;
+  --color-text-warning: #d97706;
+  --color-text-danger: #dc2626;
+
+  /* Layout */
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;                 /* Super smooth rounded corners */
+  
+  /* Modern Glassmorphic & Soft Shadows */
+  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.01);
+  --shadow-hover: 0 12px 24px rgba(255, 19, 0, 0.12), 0 4px 8px rgba(15, 23, 42, 0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-background-app);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
