@@ -9,7 +9,9 @@ import { RAW_ONBOARD_ACCOUNTS, RAW_VERSIUM_ACCOUNTS } from '../data/mockAccounts
  */
 
 export const getOverviewData = async () => {
-  return cachedFetch("dashboard_overview_data", async () => {
+  // Data comes from mockAccounts.js (local module), no network call needed.
+  // Skipping cachedFetch to avoid stale sessionStorage values after edits.
+  const buildData = async () => {
     const defaultData = {
       kpis: [
         { key: "total", label: "Total Accounts", value: "28", delta: "All database registrations", trend: "up", icon: "users", iconColor: "#FF1300", bg: "rgba(255,19,0,0.08)" },
@@ -17,7 +19,8 @@ export const getOverviewData = async () => {
         { key: "churned", label: "Churned Accounts", value: "14", delta: "Not renewed / expired accounts", trend: "dn", icon: "user-x", iconColor: "#DC2626", bg: "rgba(220,38,38,0.08)" },
         { key: "trial", label: "Active Trail Accounts", value: "3", delta: "In trial evaluation window", trend: "up", icon: "clock", iconColor: "#F59E0B", bg: "rgba(245,158,11,0.08)" },
         { key: "indonesia", label: "Indonesia Accounts", value: "4", delta: "Southeast Asia territory", trend: "up", icon: "map-pin", iconColor: "#0284C7", bg: "rgba(2,132,199,0.08)" },
-        { key: "redington", label: "Redington Accounts", value: "4", delta: "Partner distribution channel", trend: "up", icon: "briefcase", iconColor: "#7C3AED", bg: "rgba(124,58,237,0.08)" }
+        { key: "redington", label: "Redington Accounts", value: "4", delta: "Partner distribution channel", trend: "up", icon: "briefcase", iconColor: "#7C3AED", bg: "rgba(124,58,237,0.08)" },
+        { key: "versium", label: "Versium Accounts", value: String(RAW_VERSIUM_ACCOUNTS.length), delta: "Versium data partner channel", trend: "up", icon: "database", iconColor: "#0891B2", bg: "rgba(8,145,178,0.08)" }
       ],
       acquisitionChart: [
         { month: "Jan", customers: 0, trials: 0 },
@@ -120,7 +123,11 @@ export const getOverviewData = async () => {
     }
 
     return defaultData;
-  }, 10 * 1000);
+  };
+
+  // Clear any stale cached data from sessionStorage
+  try { sessionStorage.removeItem('ms_cache_dashboard_overview_data'); } catch (e) { }
+  return buildData();
 };
 
 export const getGeographyData = async () => {

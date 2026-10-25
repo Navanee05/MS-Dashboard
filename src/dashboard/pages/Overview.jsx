@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { getOverviewData } from '../../api/dashboardApi';
-import { RAW_ONBOARD_ACCOUNTS } from '../../data/mockAccounts';
-import { 
-  IconLoader2, 
-  IconUsers, 
-  IconCreditCard, 
-  IconUserX, 
-  IconClock, 
-  IconMapPin, 
-  IconBriefcase, 
-  IconArrowUp, 
+import { RAW_ONBOARD_ACCOUNTS, RAW_VERSIUM_ACCOUNTS } from '../../data/mockAccounts';
+import {
+  IconLoader2,
+  IconUsers,
+  IconCreditCard,
+  IconUserX,
+  IconClock,
+  IconMapPin,
+  IconBriefcase,
+  IconArrowUp,
   IconArrowDown,
   IconSearch,
   IconCheck,
@@ -21,7 +21,8 @@ import {
   IconCreditCard as IconCard,
   IconActivity,
   IconSend,
-  IconFileText
+  IconFileText,
+  IconDatabase
 } from '@tabler/icons-react';
 
 const iconMap = {
@@ -31,6 +32,7 @@ const iconMap = {
   clock: IconClock,
   'map-pin': IconMapPin,
   briefcase: IconBriefcase,
+  database: IconDatabase,
 };
 
 const planStyles = {
@@ -66,12 +68,12 @@ const Overview = () => {
 
   useEffect(() => {
     (async () => {
-      try { 
-        setData(await getOverviewData()); 
-      } catch (e) { 
-        console.error(e); 
-      } finally { 
-        setLoading(false); 
+      try {
+        setData(await getOverviewData());
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
@@ -114,6 +116,11 @@ const Overview = () => {
         ...acc,
         displaySNo: index + 1
       }));
+    } else if (selectedKey === 'versium') {
+      list = (RAW_VERSIUM_ACCOUNTS || []).map((acc, index) => ({
+        ...acc,
+        displaySNo: index + 1
+      }));
     } else {
       list = RAW_ONBOARD_ACCOUNTS.map((acc, index) => ({
         ...acc,
@@ -124,7 +131,7 @@ const Overview = () => {
     if (!searchQuery.trim()) return list;
 
     const query = searchQuery.toLowerCase().trim();
-    return list.filter(acc => 
+    return list.filter(acc =>
       String(acc.displaySNo).includes(query) ||
       String(acc.ClientID).toLowerCase().includes(query) ||
       String(acc.ClientName).toLowerCase().includes(query) ||
@@ -133,7 +140,8 @@ const Overview = () => {
       String(acc.SubscribtionType || '').toLowerCase().includes(query)
     );
   }, [selectedKey, searchQuery]);
-
+  const versiumActive = RAW_VERSIUM_ACCOUNTS.filter(a => a.MSAccountStatus === 'Active').length;
+  const versiumExpired = RAW_VERSIUM_ACCOUNTS.filter(a => a.MSAccountStatus === 'Expired').length
   // Current active KPI card info
   const activeKpi = useMemo(() => {
     if (!data?.kpis) return null;
@@ -150,13 +158,13 @@ const Overview = () => {
   }
 
   return (
-    <div 
-      className="content" 
-      style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '20px', 
-        paddingBottom: '160px' 
+    <div
+      className="content"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        paddingBottom: '160px'
       }}
     >
       {/* ── Page Header ── */}
@@ -167,14 +175,14 @@ const Overview = () => {
             Real-time account intelligence, subscription distribution, and regional partner footprint
           </p>
         </div>
-        <div 
-          style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            padding: '6px 14px', 
-            borderRadius: '20px', 
-            background: 'rgba(255,19,0,0.06)', 
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 14px',
+            borderRadius: '20px',
+            background: 'rgba(255,19,0,0.06)',
             border: '1px solid rgba(255,19,0,0.18)',
             fontSize: '13px',
             fontWeight: 600,
@@ -187,9 +195,9 @@ const Overview = () => {
       </div>
 
       {/* ── 6 KPI Cards Grid (Compact & Sleek) ── */}
-      <div 
-        className="kpi-row" 
-        style={{ 
+      <div
+        className="kpi-row"
+        style={{
           gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))',
           gap: '12px',
           marginTop: '2px'
@@ -200,22 +208,22 @@ const Overview = () => {
           const isSelected = selectedKey === kpi.key;
 
           return (
-            <div 
+            <div
               className={`kpi-card ${isSelected ? 'active-kpi-card' : ''}`}
-              key={idx} 
+              key={idx}
               onClick={() => handleSelectKey(kpi.key)}
-              style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '8px',
                 padding: '12px 14px',
                 borderRadius: '12px',
                 background: '#ffffff',
-                border: isSelected 
-                  ? `2px solid ${kpi.iconColor}` 
+                border: isSelected
+                  ? `2px solid ${kpi.iconColor}`
                   : '1px solid var(--color-border-primary)',
-                boxShadow: isSelected 
-                  ? `0 6px 16px ${kpi.iconColor}22` 
+                boxShadow: isSelected
+                  ? `0 6px 16px ${kpi.iconColor}22`
                   : 'var(--shadow-sm)',
                 cursor: 'pointer',
                 transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -225,11 +233,11 @@ const Overview = () => {
             >
               {/* Top row with Label + Icon */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
-                <span 
-                  className="kpi-label" 
-                  style={{ 
-                    fontSize: '11px', 
-                    fontWeight: isSelected ? 700 : 600, 
+                <span
+                  className="kpi-label"
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: isSelected ? 700 : 600,
                     color: isSelected ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -239,29 +247,29 @@ const Overview = () => {
                 >
                   {kpi.label}
                 </span>
-                <div 
-                  style={{ 
-                    width: '28px', 
-                    height: '28px', 
-                    borderRadius: '8px', 
-                    background: kpi.bg, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    flexShrink: 0 
+                <div
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '8px',
+                    background: kpi.bg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
                   }}
                 >
                   <Icon size={15} color={kpi.iconColor} stroke={2.2} />
                 </div>
               </div>
-              
+
               {/* Value and Active Badge */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                <div 
-                  className="kpi-value" 
-                  style={{ 
-                    fontFamily: 'var(--font-display)', 
-                    fontSize: '24px', 
+                <div
+                  className="kpi-value"
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '24px',
                     fontWeight: 800,
                     lineHeight: 1,
                     color: 'var(--color-text-primary)'
@@ -271,13 +279,13 @@ const Overview = () => {
                 </div>
 
                 {isSelected && (
-                  <span 
-                    style={{ 
-                      fontSize: '10px', 
-                      fontWeight: 700, 
-                      color: kpi.iconColor, 
-                      background: kpi.bg, 
-                      padding: '2px 6px', 
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      color: kpi.iconColor,
+                      background: kpi.bg,
+                      padding: '2px 6px',
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
@@ -291,11 +299,11 @@ const Overview = () => {
               </div>
 
               {/* Delta / Subtitle */}
-              <div 
+              <div
                 className={`kpi-delta ${kpi.trend === 'up' ? 'delta-up' : kpi.trend === 'dn' ? 'delta-dn' : ''}`}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: '4px',
                   fontSize: '11px',
                   fontWeight: 500,
@@ -308,6 +316,12 @@ const Overview = () => {
                 {kpi.trend === 'up' && <IconArrowUp size={11} stroke={2.5} />}
                 {kpi.trend === 'dn' && <IconArrowDown size={11} stroke={2.5} />}
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{kpi.delta}</span>
+                {kpi.key === 'versium' && (
+                  <div style={{ display: 'flex', gap: '8px', fontSize: '10px', fontWeight: 600 }}>
+                    <span style={{ color: '#059669' }}>Active: {versiumActive}</span>
+                    <span style={{ color: '#dc2626' }}>Expired: {versiumExpired}</span>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -315,20 +329,20 @@ const Overview = () => {
       </div>
 
       {/* ── Interactive Account Intelligence Roster ── */}
-      <div 
+      <div
         ref={rosterRef}
-        style={{ 
-          background: '#ffffff', 
-          borderRadius: '18px', 
-          border: '1px solid var(--color-border-primary)', 
+        style={{
+          background: '#ffffff',
+          borderRadius: '18px',
+          border: '1px solid var(--color-border-primary)',
           boxShadow: 'var(--shadow-sm)',
           overflow: 'hidden'
         }}
       >
         {/* Panel Header & Controls */}
-        <div 
-          style={{ 
-            padding: '22px 26px', 
+        <div
+          style={{
+            padding: '22px 26px',
             borderBottom: '1px solid var(--color-border-primary)',
             background: 'linear-gradient(180deg, #fafafa 0%, #ffffff 100%)',
             display: 'flex',
@@ -342,12 +356,12 @@ const Overview = () => {
                 <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
                   {activeKpi ? activeKpi.label : 'Account Intelligence'}
                 </h2>
-                <span 
-                  style={{ 
-                    fontSize: '12px', 
-                    fontWeight: 700, 
-                    padding: '3px 10px', 
-                    borderRadius: '12px', 
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '3px 10px',
+                    borderRadius: '12px',
                     background: activeKpi ? activeKpi.bg : 'rgba(0,0,0,0.06)',
                     color: activeKpi ? activeKpi.iconColor : 'var(--color-text-primary)',
                     border: `1px solid ${activeKpi ? activeKpi.iconColor : 'transparent'}22`
@@ -368,25 +382,25 @@ const Overview = () => {
 
             {/* Search Input */}
             <div style={{ position: 'relative', width: '280px' }}>
-              <IconSearch 
-                size={16} 
-                style={{ 
-                  position: 'absolute', 
-                  left: '12px', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)', 
-                  color: 'var(--color-text-muted)' 
-                }} 
+              <IconSearch
+                size={16}
+                style={{
+                  position: 'absolute',
+                  left: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--color-text-muted)'
+                }}
               />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search S.No, ID, or Name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ 
-                  width: '100%', 
-                  padding: '9px 12px 9px 36px', 
-                  borderRadius: '10px', 
+                style={{
+                  width: '100%',
+                  padding: '9px 12px 9px 36px',
+                  borderRadius: '10px',
                   border: '1px solid var(--color-border-primary)',
                   fontSize: '13px',
                   outline: 'none',
@@ -396,15 +410,15 @@ const Overview = () => {
                 }}
               />
               {searchQuery && (
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
-                  style={{ 
-                    position: 'absolute', 
-                    right: '10px', 
-                    top: '50%', 
-                    transform: 'translateY(-50%)', 
-                    background: 'none', 
-                    border: 'none', 
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
                     cursor: 'pointer',
                     color: 'var(--color-text-muted)',
                     padding: '2px'
@@ -427,7 +441,8 @@ const Overview = () => {
               { key: 'churned', label: 'Churned Accounts (14)', color: '#DC2626' },
               { key: 'trial', label: 'Active Trail (3)', color: '#F59E0B' },
               { key: 'indonesia', label: 'Indonesia Accounts (4)', color: '#0284C7' },
-              { key: 'redington', label: 'Redington Partner (4)', color: '#7C3AED' },
+              { key: 'redington', label: 'Redington Accounts (4)', color: '#7C3AED' },
+              { key: 'versium', label: `Versium Accounts (${RAW_VERSIUM_ACCOUNTS.length})`, color: '#0891B2' },
             ].map(pill => {
               const isActive = selectedKey === pill.key;
               return (
@@ -453,14 +468,48 @@ const Overview = () => {
             })}
           </div>
         </div>
+        {selectedKey === 'versium' && (
+          <div style={{ overflowX: 'auto', maxHeight: '560px', overflowY: 'auto' }}>
+            <table style={{ width: '100%', minWidth: '920px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <thead>
+                <tr>
+                  {['ClientName', 'Email', 'AccountCreatedDate', 'AccountExpiryDate', 'SubscribtionPlan', 'Partner', 'MS Account Status'].map(h => (
+                    <th key={h} style={{ padding: '12px 18px', fontWeight: 600, background: '#f8fafc', position: 'sticky', top: 0, zIndex: 5 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAccounts.map((a, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid var(--color-border-secondary)' }}>
+                    <td style={{ padding: '12px 18px', fontWeight: 700 }}>{a.ClientName}</td>
+                    <td style={{ padding: '12px 18px', color: 'var(--color-text-secondary)' }}>{a.Email}</td>
+                    <td style={{ padding: '12px 18px' }}>{a.AccountCreatedDate}</td>
+                    <td style={{ padding: '12px 18px' }}>{a.AccountExpiryDate}</td>
+                    <td style={{ padding: '12px 18px' }}>{a.SubscribtionPlan}</td>
+                    <td style={{ padding: '12px 18px' }}>{a.Partner}</td>
+                    <td style={{ padding: '12px 18px' }}>
+                      <span style={{
+                        fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '12px',
+                        background: a.MSAccountStatus === 'Active' ? '#f0fdf4' : '#fef2f2',
+                        color: a.MSAccountStatus === 'Active' ? '#15803d' : '#b91c1c'
+                      }}>
+                        {a.MSAccountStatus}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Table View */}
-        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxHeight: '560px', overflowY: 'auto' }}>
+        <div style={{ display: selectedKey === 'versium' ? 'none' : 'block', overflowX: 'auto', WebkitOverflowScrolling: 'touch', maxHeight: '560px', overflowY: 'auto' }}>
           <table style={{ width: '100%', minWidth: '920px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
             <thead>
-              <tr style={{ 
-                background: '#f8fafc', 
-                borderBottom: '1px solid var(--color-border-primary)', 
+              <tr style={{
+                background: '#f8fafc',
+                borderBottom: '1px solid var(--color-border-primary)',
                 color: 'var(--color-text-secondary)',
                 position: 'sticky',
                 top: 0,
@@ -492,10 +541,10 @@ const Overview = () => {
                   const statusBadge = statusStyles[account.RenewalStatus] || { bg: '#f1f5f9', color: '#475569', border: '#cbd5e1' };
 
                   return (
-                    <tr 
+                    <tr
                       key={account.ClientID}
                       onClick={() => setDrawerAccount(account)}
-                      style={{ 
+                      style={{
                         borderBottom: isLast ? 'none' : '1px solid var(--color-border-secondary)',
                         cursor: 'pointer',
                         transition: 'background-color 0.15s ease'
@@ -510,11 +559,11 @@ const Overview = () => {
 
                       {/* Client ID */}
                       <td style={{ padding: isLast ? '14px 18px 24px' : '14px 18px' }}>
-                        <span 
-                          style={{ 
-                            fontFamily: 'monospace', 
-                            fontSize: '12px', 
-                            fontWeight: 600, 
+                        <span
+                          style={{
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            fontWeight: 600,
                             color: '#2563eb',
                             background: '#eff6ff',
                             padding: '3px 8px',
@@ -539,11 +588,11 @@ const Overview = () => {
 
                       {/* Plan */}
                       <td style={{ padding: isLast ? '14px 18px 24px' : '14px 18px' }}>
-                        <span 
-                          style={{ 
-                            fontSize: '11px', 
-                            fontWeight: 600, 
-                            padding: '3px 8px', 
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '3px 8px',
                             borderRadius: '12px',
                             background: planBadge.bg,
                             color: planBadge.color,
@@ -566,11 +615,11 @@ const Overview = () => {
 
                       {/* Renewal Status */}
                       <td style={{ padding: isLast ? '14px 18px 24px' : '14px 18px' }}>
-                        <span 
-                          style={{ 
-                            fontSize: '11px', 
-                            fontWeight: 700, 
-                            padding: '3px 8px', 
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '3px 8px',
                             borderRadius: '12px',
                             background: statusBadge.bg,
                             color: statusBadge.color,
@@ -624,17 +673,17 @@ const Overview = () => {
         </div>
 
         {/* Card Footer Summary Bar - Guarantees last account visibility & quick access */}
-        <div 
-          style={{ 
-            padding: '13px 22px', 
-            borderTop: '1px solid var(--color-border-primary)', 
+        <div
+          style={{
+            padding: '13px 22px',
+            borderTop: '1px solid var(--color-border-primary)',
             background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             flexWrap: 'wrap',
             gap: '12px',
-            fontSize: '12px', 
+            fontSize: '12px',
             color: 'var(--color-text-secondary)'
           }}
         >
@@ -687,7 +736,7 @@ const Overview = () => {
 
       {/* ── Slide-Over Account Intelligence Drawer ── */}
       {drawerAccount && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,
@@ -703,7 +752,7 @@ const Overview = () => {
           }}
           onClick={() => setDrawerAccount(null)}
         >
-          <div 
+          <div
             style={{
               width: '100%',
               maxWidth: '520px',
@@ -717,9 +766,9 @@ const Overview = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
-            <div 
-              style={{ 
-                padding: '24px', 
+            <div
+              style={{
+                padding: '24px',
                 borderBottom: '1px solid var(--color-border-primary)',
                 background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
                 position: 'sticky',
@@ -729,14 +778,14 @@ const Overview = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <span 
-                    style={{ 
-                      fontSize: '11px', 
-                      fontWeight: 700, 
-                      color: '#2563eb', 
-                      background: '#eff6ff', 
-                      padding: '2px 8px', 
-                      borderRadius: '6px' 
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#2563eb',
+                      background: '#eff6ff',
+                      padding: '2px 8px',
+                      borderRadius: '6px'
                     }}
                   >
                     Client ID: {drawerAccount.ClientID}
@@ -750,12 +799,12 @@ const Overview = () => {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={() => setDrawerAccount(null)}
-                  style={{ 
-                    width: '32px', 
-                    height: '32px', 
-                    borderRadius: '8px', 
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
                     border: '1px solid var(--color-border-primary)',
                     background: '#ffffff',
                     display: 'flex',
@@ -771,11 +820,11 @@ const Overview = () => {
 
               {/* Status / Plan Pills */}
               <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
-                <span 
-                  style={{ 
-                    fontSize: '12px', 
-                    fontWeight: 700, 
-                    padding: '4px 10px', 
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '4px 10px',
                     borderRadius: '12px',
                     background: (planStyles[drawerAccount.SubscribtionType] || {}).bg || '#eff6ff',
                     color: (planStyles[drawerAccount.SubscribtionType] || {}).color || '#1d4ed8',
@@ -785,11 +834,11 @@ const Overview = () => {
                   {drawerAccount.SubscribtionType}{drawerAccount.Price ? ` · ${drawerAccount.Price}` : ''}
                 </span>
 
-                <span 
-                  style={{ 
-                    fontSize: '12px', 
-                    fontWeight: 700, 
-                    padding: '4px 10px', 
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '4px 10px',
                     borderRadius: '12px',
                     background: (statusStyles[drawerAccount.RenewalStatus] || {}).bg || '#f0fdf4',
                     color: (statusStyles[drawerAccount.RenewalStatus] || {}).color || '#15803d',
@@ -799,11 +848,11 @@ const Overview = () => {
                   {drawerAccount.RenewalStatus}
                 </span>
 
-                <span 
-                  style={{ 
-                    fontSize: '12px', 
-                    fontWeight: 600, 
-                    padding: '4px 10px', 
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    padding: '4px 10px',
                     borderRadius: '12px',
                     background: '#f1f5f9',
                     color: 'var(--color-text-secondary)'
@@ -817,11 +866,11 @@ const Overview = () => {
             {/* Drawer Body Content */}
             <div style={{ padding: '24px 24px 140px 24px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
               {/* Account Meta Box */}
-              <div 
-                style={{ 
-                  background: '#f8fafc', 
-                  borderRadius: '12px', 
-                  border: '1px solid var(--color-border-primary)', 
+              <div
+                style={{
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid var(--color-border-primary)',
                   padding: '16px',
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
@@ -908,11 +957,11 @@ const Overview = () => {
                   <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                     Email Delivery Performance
                   </span>
-                  <span 
-                    style={{ 
-                      fontSize: '12px', 
-                      fontWeight: 800, 
-                      color: (drawerAccount.sent > 0 && Math.round((drawerAccount.delivered / drawerAccount.sent) * 100) >= 80) ? '#059669' : '#d97706' 
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      color: (drawerAccount.sent > 0 && Math.round((drawerAccount.delivered / drawerAccount.sent) * 100) >= 80) ? '#059669' : '#d97706'
                     }}
                   >
                     {drawerAccount.sent > 0 ? `${Math.round((drawerAccount.delivered / drawerAccount.sent) * 100)}% Delivered` : '—'}
@@ -925,12 +974,12 @@ const Overview = () => {
                 </div>
 
                 <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div 
-                    style={{ 
-                      width: drawerAccount.sent > 0 ? `${Math.min(100, Math.round((drawerAccount.delivered / drawerAccount.sent) * 100))}%` : '0%', 
-                      height: '100%', 
-                      background: '#10B981', 
-                      borderRadius: '4px' 
+                  <div
+                    style={{
+                      width: drawerAccount.sent > 0 ? `${Math.min(100, Math.round((drawerAccount.delivered / drawerAccount.sent) * 100))}%` : '0%',
+                      height: '100%',
+                      background: '#10B981',
+                      borderRadius: '4px'
                     }}
                   ></div>
                 </div>
@@ -944,11 +993,11 @@ const Overview = () => {
                     Activity, renewals, & engagement rating
                   </div>
                 </div>
-                <div 
-                  style={{ 
-                    fontSize: '22px', 
-                    fontWeight: 800, 
-                    color: drawerAccount.healthScore >= 75 ? '#059669' : drawerAccount.healthScore >= 50 ? '#d97706' : '#dc2626' 
+                <div
+                  style={{
+                    fontSize: '22px',
+                    fontWeight: 800,
+                    color: drawerAccount.healthScore >= 75 ? '#059669' : drawerAccount.healthScore >= 50 ? '#d97706' : '#dc2626'
                   }}
                 >
                   {drawerAccount.healthScore || 70} / 100

@@ -7,7 +7,7 @@
  * Dates are dd/mm/yyyy. renewalDays = days from 25 Oct 2026 to RenewalDue (negative = overdue, 999 = no date in sheet).
  * Fields left "" are not in the sheet - fill them in when you have them.
  */
-
+import { VERSIUM_ACCOUNTS } from "./versiumAccounts";
 export const RAW_ONBOARD_ACCOUNTS = [
   {
     "sNo": 1,
@@ -681,6 +681,7 @@ export const RAW_ONBOARD_ACCOUNTS = [
     "renewalDays": 999
   }
 ];
-
 // Required by dashboardApi.js – keep this export even if empty
-export const RAW_VERSIUM_ACCOUNTS = [];
+// Required by dashboardApi.js
+export const RAW_VERSIUM_ACCOUNTS = VERSIUM_ACCOUNTS;
+export { VERSIUM_ACCOUNTS };
