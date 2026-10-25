@@ -180,5 +180,20 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar { width: 200px; }
+  .sidebar {
+    width: 200px;
+  }
+}
+
+.logo-brand {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 6px;
+  background: linear-gradient(90deg, #8c2800 0%, #ff1300 55%, #fd6533 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { NavLink, Outlet} from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import {
   IconLayoutDashboard,
   IconWorld,
@@ -21,7 +21,7 @@ const navItems = [
 ];
 
 const DashboardLayout = () => {
-  
+
   // Background warm-up / prefetch all dashboard data so tab switches are instantaneous
   useEffect(() => {
     fetchAccounts().catch(() => { });
@@ -30,7 +30,7 @@ const DashboardLayout = () => {
     fetchVersiumPartnerKpis().catch(() => { });
   }, []);
 
-    return (
+  return (
     <div className="app">
       {/* ── Sidebar ── */}
       <aside className="sidebar">
@@ -40,8 +40,8 @@ const DashboardLayout = () => {
             alt="MarketingStar Logo"
             className="sidebar-logo-img"
             style={{
-              width: '36px',
-              height: '36px',
+              width: '55px',
+              height: '55px',
               borderRadius: '8px',
               objectFit: 'contain'
             }}
@@ -69,7 +69,7 @@ const DashboardLayout = () => {
           );
         })}
 
-              </aside>
+      </aside>
 
       {/* ── Main Content Area ── */}
       <main className="main">
