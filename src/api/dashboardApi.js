@@ -17,7 +17,7 @@ export const getOverviewData = async () => {
         { key: "churned", label: "Churned Accounts", value: "14", delta: "Not renewed / expired accounts", trend: "dn", icon: "user-x", iconColor: "#DC2626", bg: "rgba(220,38,38,0.08)" },
         { key: "trial", label: "Active Trail Accounts", value: "3", delta: "In trial evaluation window", trend: "up", icon: "clock", iconColor: "#F59E0B", bg: "rgba(245,158,11,0.08)" },
         { key: "indonesia", label: "Indonesia Accounts", value: "4", delta: "Southeast Asia territory", trend: "up", icon: "map-pin", iconColor: "#0284C7", bg: "rgba(2,132,199,0.08)" },
-        { key: "redington", label: "Redington Partner Accounts", value: "4", delta: "Partner distribution channel", trend: "up", icon: "briefcase", iconColor: "#7C3AED", bg: "rgba(124,58,237,0.08)" }
+        { key: "redington", label: "Redington Accounts", value: "4", delta: "Partner distribution channel", trend: "up", icon: "briefcase", iconColor: "#7C3AED", bg: "rgba(124,58,237,0.08)" }
       ],
       acquisitionChart: [
         { month: "Jan", customers: 0, trials: 0 },
