@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet} from 'react-router-dom';
 import {
   IconLayoutDashboard,
   IconWorld,
   IconActivity,
   IconUsers,
-  IconLogout
 } from '@tabler/icons-react';
 import { logoutUser } from '../services/authService';
 import { fetchAccounts } from '../api/accountService';
@@ -22,8 +21,7 @@ const navItems = [
 ];
 
 const DashboardLayout = () => {
-  const navigate = useNavigate();
-
+  
   // Background warm-up / prefetch all dashboard data so tab switches are instantaneous
   useEffect(() => {
     fetchAccounts().catch(() => { });
@@ -32,12 +30,7 @@ const DashboardLayout = () => {
     fetchVersiumPartnerKpis().catch(() => { });
   }, []);
 
-  const handleLogout = () => {
-    logoutUser();
-    navigate('/login', { replace: true });
-  };
-
-  return (
+    return (
     <div className="app">
       {/* ── Sidebar ── */}
       <aside className="sidebar">
@@ -54,6 +47,7 @@ const DashboardLayout = () => {
             }}
           />
           <div>
+            <div className="logo-brand">SmartVue</div>
             <div className="logo-text">MarketingStar</div>
             <div className="logo-sub">Customer Intelligence</div>
           </div>
@@ -75,13 +69,7 @@ const DashboardLayout = () => {
           );
         })}
 
-        <div className="sidebar-bottom">
-          <button className="sidebar-logout-btn" onClick={handleLogout}>
-            <IconLogout size={18} stroke={2} />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </aside>
+              </aside>
 
       {/* ── Main Content Area ── */}
       <main className="main">
