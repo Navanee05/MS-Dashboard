@@ -1,36 +1,12 @@
-import axios from 'axios';
 import { fetchAccounts } from './accountService';
 import { fetchVersiumAccounts } from './partnerService';
 import { cachedFetch } from '../utils/apiCache';
 import { RAW_ONBOARD_ACCOUNTS, RAW_VERSIUM_ACCOUNTS } from '../data/mockAccounts';
 
 /**
- * Helper to try fetching JSON array from relative/Vite proxy URL,
- * and if it fails or returns HTML (e.g. 404/index.html fallback),
- * automatically try direct HTTPS API URL.
+ * dashboardApi.js  (MANUAL DATA VERSION - no API calls)
+ * All data comes from  src/data/mockAccounts.js
  */
-async function fetchWithFallback(proxyUrl, directUrl) {
-  try {
-    const res = await axios.get(proxyUrl, { timeout: 2500 });
-    const contentType = res.headers?.['content-type'] || '';
-    if (Array.isArray(res.data) && !contentType.includes('text/html')) {
-      return res.data;
-    }
-  } catch (e) {
-    // Vite proxy failed, try direct URL
-  }
-
-  try {
-    const directRes = await axios.get(directUrl, { timeout: 2500 });
-    if (Array.isArray(directRes.data)) {
-      return directRes.data;
-    }
-  } catch (eDirect) {
-    // Direct fetch failed
-  }
-
-  return [];
-}
 
 export const getOverviewData = async () => {
   return cachedFetch("dashboard_overview_data", async () => {
@@ -94,28 +70,14 @@ export const getOverviewData = async () => {
     };
 
     try {
-      let [onboardData, versiumData] = await Promise.all([
-        fetchWithFallback(
-          '/api/campstats/AccountOnboard/Get_OnBoardInfoAPI',
-          'https://campstats.marketingstar.us/AccountOnboard/Get_OnBoardInfoAPI'
-        ),
-        fetchWithFallback(
-          '/api/campstats/VersiumReach/Get_VersiumReachDetails',
-          'https://campstats.marketingstar.us/VersiumReach/Get_VersiumReachDetails'
-        )
-      ]);
-
-      if (!Array.isArray(onboardData) || onboardData.length === 0) {
-        onboardData = RAW_ONBOARD_ACCOUNTS;
-      }
-      if (!Array.isArray(versiumData) || versiumData.length === 0) {
-        versiumData = RAW_VERSIUM_ACCOUNTS;
-      }
+      // Manual data - no server calls
+      const onboardData = RAW_ONBOARD_ACCOUNTS;
+      const versiumData = RAW_VERSIUM_ACCOUNTS;
 
       if (Array.isArray(onboardData) && onboardData.length > 0) {
         const directOnboard = onboardData.filter(
           x => (!x.Partner || String(x.Partner).trim() === '') &&
-               String(x.DiscountCode).trim() !== 'DXACC01'
+            String(x.DiscountCode).trim() !== 'DXACC01'
         );
         const partnerAccounts = onboardData.filter(
           x => x.Partner && String(x.Partner).trim() !== ''
@@ -130,7 +92,6 @@ export const getOverviewData = async () => {
           x => String(x.SubscribtionType).toLowerCase() === 'freetrial'
         ).length;
         const trials = onboardTrials;
-        const paying = total - trials;
 
         // Keep the exact 6 KPI overview cards configured for the dashboard
         defaultData.funnel[0].value = total.toLocaleString();
@@ -155,7 +116,7 @@ export const getOverviewData = async () => {
         ];
       }
     } catch (error) {
-      console.warn("Failed to fetch dynamic overview statistics:", error);
+      console.warn("Failed to build overview statistics:", error);
     }
 
     return defaultData;
@@ -175,6 +136,7 @@ export const getGeographyData = async () => {
     };
 
     // Map Versium accounts into geography account shape representing USA (or SEA if Tier 5)
+    // eslint-disable-next-line no-unused-vars
     const mappedVersium = (versiumAccounts || []).map(a => {
       const tier5 = isTier5(a);
       return {
@@ -195,15 +157,15 @@ export const getGeographyData = async () => {
     const baseList = (directAccounts && directAccounts.length > 0)
       ? directAccounts
       : RAW_ONBOARD_ACCOUNTS.map(a => ({
-          ...a,
-          id: String(a.ClientID || a.id),
-          name: a.ClientName,
-          email: a.Email,
-          country: a.country || 'India',
-          plan: a.SubscribtionType,
-          status: a.RenewalStatus === 'Renewed' ? 'Active' : 'Active',
-          campaigns: a.campaigns || 0
-        }));
+        ...a,
+        id: String(a.ClientID || a.id),
+        name: a.ClientName,
+        email: a.Email,
+        country: a.country || 'India',
+        plan: a.SubscribtionType,
+        status: a.RenewalStatus === 'Renewed' ? 'Active' : 'Active',
+        campaigns: a.campaigns || 0
+      }));
 
     const seaAccounts = baseList.filter(a => {
       const c = String(a.country || '').toLowerCase().trim();
@@ -226,7 +188,7 @@ export const getGeographyData = async () => {
     const usaCount = usaAccounts.length;
     const seaCount = seaAccounts.length;
 
-    // Monthly growth trend (proportional from live total)
+    // Monthly growth trend (proportional from total)
     const monthlyGrowth = [
       { month: 'Jan', India: Math.round(indiaCount * 0.78), USA: Math.round(usaCount * 0.75), SEA: Math.round(seaCount * 0.70) },
       { month: 'Feb', India: Math.round(indiaCount * 0.83), USA: Math.round(usaCount * 0.80), SEA: Math.round(seaCount * 0.78) },
@@ -334,15 +296,15 @@ export const getFeaturesData = async () => {
     };
   }
 
-  const emailCount = accounts.filter(a => 
+  const emailCount = accounts.filter(a =>
     (a.channel && String(a.channel).includes("Email")) || a.sent > 0 || a.campaigns > 0 || (a.communicationJobs && a.communicationJobs.total > 0)
   ).length || Math.round(total * 0.85);
 
-  const whatsappCount = accounts.filter(a => 
+  const whatsappCount = accounts.filter(a =>
     (a.channel && String(a.channel).includes("WhatsApp")) || (a.communicationJobs && String(a.communicationJobs).includes("WhatsApp"))
   ).length || Math.round(total * 0.38);
 
-  const smsCount = accounts.filter(a => 
+  const smsCount = accounts.filter(a =>
     (a.channel && String(a.channel).includes("SMS")) || (a.communicationJobs && String(a.communicationJobs).includes("SMS"))
   ).length || Math.round(total * 0.42);
 

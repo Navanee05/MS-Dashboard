@@ -26,10 +26,10 @@ const DashboardLayout = () => {
 
   // Background warm-up / prefetch all dashboard data so tab switches are instantaneous
   useEffect(() => {
-    fetchAccounts().catch(() => {});
-    getOverviewData().catch(() => {});
-    getGeographyData().catch(() => {});
-    fetchVersiumPartnerKpis().catch(() => {});
+    fetchAccounts().catch(() => { });
+    getOverviewData().catch(() => { });
+    getGeographyData().catch(() => { });
+    fetchVersiumPartnerKpis().catch(() => { });
   }, []);
 
   const handleLogout = () => {
@@ -43,7 +43,7 @@ const DashboardLayout = () => {
       <aside className="sidebar">
         <div className="sidebar-logo">
           <img
-            src="/image/logo.jpg"
+            src={`${import.meta.env.BASE_URL}image/logo.jpg`}
             alt="MarketingStar Logo"
             className="sidebar-logo-img"
             style={{
