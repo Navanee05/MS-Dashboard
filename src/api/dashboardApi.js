@@ -2,11 +2,15 @@ import { fetchAccounts } from './accountService';
 import { fetchVersiumAccounts } from './partnerService';
 import { cachedFetch } from '../utils/apiCache';
 import { RAW_ONBOARD_ACCOUNTS, RAW_VERSIUM_ACCOUNTS } from '../data/mockAccounts';
-
+import { REGION_BY_CLIENT_ID } from '../data/regionMap';
 /**
  * dashboardApi.js  (MANUAL DATA VERSION - no API calls)
  * All data comes from  src/data/mockAccounts.js
  */
+
+// Treats "FreeTrial", "Free Trial", "Free Trail", "Premier(Free Trail)" etc. all as trial plans
+// (also catches the "Trail" typo so trials are never counted as paying)
+const isTrialPlan = (plan) => /tr(ia|ai)l/i.test(String(plan || ''));
 
 export const getOverviewData = async () => {
   // Data comes from mockAccounts.js (local module), no network call needed.
@@ -17,7 +21,7 @@ export const getOverviewData = async () => {
         { key: "total", label: "Total Accounts", value: "28", delta: "All database registrations", trend: "up", icon: "users", iconColor: "#FF1300", bg: "rgba(255,19,0,0.08)" },
         { key: "paying", label: "Active Paying Accounts", value: "3", delta: "Active recurring subscribers", trend: "up", icon: "credit-card", iconColor: "#10B981", bg: "rgba(16,185,129,0.08)" },
         { key: "churned", label: "Churned Accounts", value: "14", delta: "Not renewed / expired accounts", trend: "dn", icon: "user-x", iconColor: "#DC2626", bg: "rgba(220,38,38,0.08)" },
-        { key: "trial", label: "Active Trail Accounts", value: "3", delta: "In trial evaluation window", trend: "up", icon: "clock", iconColor: "#F59E0B", bg: "rgba(245,158,11,0.08)" },
+        { key: "trial", label: "Active Trial Accounts", value: "3", delta: "In trial evaluation window", trend: "up", icon: "clock", iconColor: "#F59E0B", bg: "rgba(245,158,11,0.08)" },
         { key: "indonesia", label: "Indonesia Accounts", value: "4", delta: "Southeast Asia territory", trend: "up", icon: "map-pin", iconColor: "#0284C7", bg: "rgba(2,132,199,0.08)" },
         { key: "redington", label: "Redington Accounts", value: "4", delta: "Partner distribution channel", trend: "up", icon: "briefcase", iconColor: "#7C3AED", bg: "rgba(124,58,237,0.08)" },
         { key: "versium", label: "Versium Accounts", value: String(RAW_VERSIUM_ACCOUNTS.length), delta: "Versium data partner channel", trend: "up", icon: "database", iconColor: "#0891B2", bg: "rgba(8,145,178,0.08)" }
@@ -92,7 +96,7 @@ export const getOverviewData = async () => {
         const total = onboardTotal;
 
         const onboardTrials = directOnboard.filter(
-          x => String(x.SubscribtionType).toLowerCase() === 'freetrial'
+          x => isTrialPlan(x.SubscribtionType)
         ).length;
         const trials = onboardTrials;
 
@@ -131,109 +135,82 @@ export const getOverviewData = async () => {
 };
 
 export const getGeographyData = async () => {
-  return cachedFetch("dashboard_geography_data", async () => {
-    const [directAccounts, versiumAccounts] = await Promise.all([
-      fetchAccounts().catch(() => []),
-      fetchVersiumAccounts().catch(() => [])
-    ]);
+  const COLORS = {
+    USA: '#0891B2',
+    India: '#FF1300',
+    Indonesia: '#FD6533',
+    Malaysia: '#8C2800',
+    Thailand: '#530F00',
+    UAE: '#0284C7',
+    Unassigned: '#94A3B8',
+  };
 
-    const isTier5 = (a) => {
-      const p = String(a.plan || a.SubscribtionType || a.LicenseTypeId || '').toLowerCase().trim();
-      return p.includes('tier 5') || p.includes('tier5') || p.includes('plan tier 5') || p === 'tier 5' || p === '5';
-    };
+  const directAccounts = RAW_ONBOARD_ACCOUNTS.map((a) => ({
+    id: String(a.ClientID),
+    name: a.ClientName,
+    email: a.Email,
+    country: REGION_BY_CLIENT_ID[String(a.ClientID)] || 'Unassigned',
+    plan: a.SubscribtionType,
+    status: a.RenewalStatus === 'Not Renewed' ? 'Inactive' : 'Active',
+    campaigns: a.campaigns || 0,
+    listsUploaded: a.listsUploaded || 0,
+  }));
 
-    // Map Versium accounts into geography account shape representing USA (or SEA if Tier 5)
-    // eslint-disable-next-line no-unused-vars
-    const mappedVersium = (versiumAccounts || []).map(a => {
-      const tier5 = isTier5(a);
-      return {
-        id: `versium-${a.id || a.ClientID}`,
-        name: a.name || 'Versium Account',
-        email: a.email || '—',
-        country: tier5 ? 'SEA' : 'USA',
-        industry: 'Technology',
-        plan: a.plan || 'Versium Reach',
-        status: a.isActive ? 'Active' : 'Inactive',
-        channel: 'Versium Partner',
-        campaigns: a.campaignCount || (Array.isArray(a.campaigns) ? a.campaigns.length : 0),
-        listsUploaded: a.listsUploaded || 0,
-        source: 'Versium Partner'
-      };
-    });
+  // All Versium accounts are placed in the USA region
+  const versiumAccounts = (RAW_VERSIUM_ACCOUNTS || []).map((a, i) => ({
+    id: `V-${a.sNo ?? i + 1}`,
+    isVersium: true,
+    name: a.ClientName,
+    email: a.Email,
+    country: 'USA',
+    plan: a.SubscribtionPlan,
+    status: a.MSAccountStatus === 'Active' ? 'Active' : 'Expired',
+  }));
 
-    const baseList = (directAccounts && directAccounts.length > 0)
-      ? directAccounts
-      : RAW_ONBOARD_ACCOUNTS.map(a => ({
-        ...a,
-        id: String(a.ClientID || a.id),
-        name: a.ClientName,
-        email: a.Email,
-        country: a.country || 'India',
-        plan: a.SubscribtionType,
-        status: a.RenewalStatus === 'Renewed' ? 'Active' : 'Active',
-        campaigns: a.campaigns || 0
-      }));
+  const accounts = [...directAccounts, ...versiumAccounts];
 
-    const seaAccounts = baseList.filter(a => {
-      const c = String(a.country || '').toLowerCase().trim();
-      return ['singapore', 'malaysia', 'indonesia', 'vietnam', 'philippines', 'sea', 'southeast asia', 'sg', 'my', 'id', 'ph', 'vn', 'th'].some(s => c.includes(s));
-    });
+  const total = accounts.length;
+  const counts = {};
+  accounts.forEach((a) => {
+    counts[a.country] = (counts[a.country] || 0) + 1;
+  });
+  // India always first, then the remaining countries by account count (highest first)
+  const names = Object.keys(counts).sort((x, y) => {
+    if (x === 'India') return -1;
+    if (y === 'India') return 1;
+    return counts[y] - counts[x];
+  });
 
-    const usaAccounts = baseList.filter(a => {
-      const c = String(a.country || '').toLowerCase().trim();
-      return c === 'us' || c === 'usa' || c.includes('united states') || c.includes('america');
-    });
-
-    const indiaAccounts = baseList.filter(a => {
-      return !seaAccounts.includes(a) && !usaAccounts.includes(a);
-    });
-
-    const allCombinedAccounts = [...indiaAccounts, ...seaAccounts, ...usaAccounts];
-
-    const total = allCombinedAccounts.length || 15;
-    const indiaCount = indiaAccounts.length;
-    const usaCount = usaAccounts.length;
-    const seaCount = seaAccounts.length;
-
-    // Monthly growth trend (proportional from total)
-    const monthlyGrowth = [
-      { month: 'Jan', India: Math.round(indiaCount * 0.78), USA: Math.round(usaCount * 0.75), SEA: Math.round(seaCount * 0.70) },
-      { month: 'Feb', India: Math.round(indiaCount * 0.83), USA: Math.round(usaCount * 0.80), SEA: Math.round(seaCount * 0.78) },
-      { month: 'Mar', India: Math.round(indiaCount * 0.88), USA: Math.round(usaCount * 0.86), SEA: Math.round(seaCount * 0.84) },
-      { month: 'Apr', India: Math.round(indiaCount * 0.92), USA: Math.round(usaCount * 0.90), SEA: Math.round(seaCount * 0.89) },
-      { month: 'May', India: Math.round(indiaCount * 0.96), USA: Math.round(usaCount * 0.95), SEA: Math.round(seaCount * 0.94) },
-      { month: 'Jun', India: indiaCount, USA: usaCount, SEA: seaCount },
-    ];
-
-    return {
-      rawAccounts: allCombinedAccounts,
-      totalAccounts: total,
-      kpis: [
-        { label: "India", value: indiaCount.toLocaleString(), flag: "🇮🇳", trend: "up", color: "#FF1300", bg: "rgba(255,19,0,0.08)" },
-        { label: "USA", value: usaCount.toLocaleString(), flag: "🇺🇸", trend: "up", color: "#FD6533", bg: "rgba(253,101,51,0.08)" },
-        { label: "SEA", value: seaCount.toLocaleString(), flag: "🌏", trend: "up", color: "#8C2800", bg: "rgba(140,40,0,0.08)" }
-      ],
-      regionDistribution: [
-        { name: "India", value: indiaCount, share: Math.round((indiaCount / total) * 100), fill: "#FF1300" },
-        { name: "SEA", value: seaCount, share: Math.round((seaCount / total) * 100), fill: "#8C2800" },
-        { name: "USA", value: usaCount, share: Math.round((usaCount / total) * 100), fill: "#FD6533" }
-      ],
-      monthlyGrowth,
-    };
-  }, 60 * 1000);
+  return {
+    rawAccounts: accounts,
+    totalAccounts: total,
+    kpis: names.map((n) => ({
+      label: n,
+      value: counts[n].toLocaleString(),
+      color: COLORS[n] || '#64748B',
+      bg: `${COLORS[n] || '#64748B'}14`,
+    })),
+    regionDistribution: names.map((n) => ({
+      name: n,
+      value: counts[n],
+      share: Math.round((counts[n] / total) * 100),
+      fill: COLORS[n] || '#64748B',
+    })),
+    monthlyGrowth: [],
+  };
 };
 
 export const getRevenueData = async () => {
   const accounts = await fetchAccounts();
   const total = accounts.length;
-  const paying = accounts.filter(a => a.plan?.toLowerCase() !== 'freetrial').length;
+  const paying = accounts.filter(a => !isTrialPlan(a.plan)).length;
   const trials = total - paying;
 
   // Plan breakdown for donut chart
-  const premierCount = accounts.filter(a => a.plan?.toLowerCase().includes('premier')).length;
-  const essentialCount = accounts.filter(a => a.plan?.toLowerCase().includes('essential')).length;
-  const ultimateCount = accounts.filter(a => a.plan?.toLowerCase().includes('ultimate')).length;
-  const trialCount = accounts.filter(a => a.plan?.toLowerCase() === 'freetrial').length;
+  const premierCount = accounts.filter(a => !isTrialPlan(a.plan) && a.plan?.toLowerCase().includes('premier')).length;
+  const essentialCount = accounts.filter(a => !isTrialPlan(a.plan) && a.plan?.toLowerCase().includes('essential')).length;
+  const ultimateCount = accounts.filter(a => !isTrialPlan(a.plan) && a.plan?.toLowerCase().includes('ultimate')).length;
+  const trialCount = accounts.filter(a => isTrialPlan(a.plan)).length;
   const otherCount = total - premierCount - essentialCount - ultimateCount - trialCount;
 
   const revenueByPlan = [
