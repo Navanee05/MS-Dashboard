@@ -1,8 +1,8 @@
-import { fetchAccounts } from './accountService';
+import { fetchAccounts, computeHealth } from './accountService';
 import { fetchVersiumAccounts } from './partnerService';
 import { cachedFetch } from '../utils/apiCache';
 import { RAW_ONBOARD_ACCOUNTS, RAW_VERSIUM_ACCOUNTS } from '../data/mockAccounts';
-import { REGION_BY_CLIENT_ID } from '../data/regionMap';
+import { REGION_BY_CLIENT_ID } from '../data/regionmap';
 /**
  * dashboardApi.js  (MANUAL DATA VERSION - no API calls)
  * All data comes from  src/data/mockAccounts.js
@@ -63,8 +63,8 @@ export const getOverviewData = async () => {
       ],
       healthSummary: {
         rows: [
-          { label: "Healthy (score > 75)", count: "0", percentage: 0, color: "#10b981", textColor: "var(--color-text-success)" },
-          { label: "At risk (50–75)", count: "0", percentage: 0, color: "#f59e0b", textColor: "var(--color-text-warning)" },
+          { label: "Healthy (score 75+)", count: "0", percentage: 0, color: "#10b981", textColor: "var(--color-text-success)" },
+          { label: "At risk (50–74)", count: "0", percentage: 0, color: "#f59e0b", textColor: "var(--color-text-warning)" },
           { label: "Critical (score < 50)", count: "0", percentage: 0, color: "#ef4444", textColor: "var(--color-text-danger)" }
         ],
         weights: [
@@ -112,6 +112,19 @@ export const getOverviewData = async () => {
           { name: "Versium", value: versiumTotal, percentage: Math.round((versiumTotal / grandTotalChannels) * 100), color: "#FD6533", fill: "#FD6533" },
           { name: "Partner", value: partnerCount, percentage: Math.round((partnerCount / grandTotalChannels) * 100), color: "#8C2800", fill: "#8C2800" }
         ];
+
+        // Health summary: counted from each account's own health score (green 75+, amber 50-74, red under 50)
+        const scores = onboardData.map(a => computeHealth(a).healthScore);
+        const greenCount = scores.filter(sc => sc >= 75).length;
+        const amberCount = scores.filter(sc => sc >= 50 && sc < 75).length;
+        const redCount = scores.filter(sc => sc < 50).length;
+        const healthTotal = scores.length || 1;
+        const healthCounts = [greenCount, amberCount, redCount];
+        defaultData.healthSummary.rows = defaultData.healthSummary.rows.map((row, i) => ({
+          ...row,
+          count: String(healthCounts[i]),
+          percentage: Math.round((healthCounts[i] / healthTotal) * 100)
+        }));
 
         defaultData.acquisitionChart = [
           { month: "Jan", customers: Math.round(total * 0.82), trials: Math.round(trials * 0.8) },
