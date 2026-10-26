@@ -115,7 +115,17 @@ const COUNTS = {
 };
 
 // Shown when hovering a KPI card
+const VERSIUM_ACTIVE_COUNT = VERSIUM_ROSTER.filter((a) => a.RenewalStatus === 'Active').length;
+
 const BREAKDOWNS = {
+  total: [
+    { label: 'Direct', value: COUNTS.direct, color: '#FF1300' },
+    { label: 'Versium', value: COUNTS.versium, color: '#0891B2' },
+  ],
+  versium: [
+    { label: 'Active', value: VERSIUM_ACTIVE_COUNT, color: '#10B981' },
+    { label: 'Expired', value: VERSIUM_EXPIRED.length, color: '#DC2626' },
+  ],
   paying: [
     { label: 'India', value: COUNTS.payingIndia, color: '#FF1300' },
     { label: 'Indonesia', value: COUNTS.payingIndonesia, color: '#0284C7' },

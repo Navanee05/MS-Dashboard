@@ -15,9 +15,9 @@ import './Dashboard.css';
 
 const navItems = [
   { path: '/dashboard/overview', label: 'Portfolio Overview', icon: IconLayoutDashboard },
+  { path: '/dashboard/partner', label: 'Partners', icon: IconUsers },
   { path: '/dashboard/geo', label: 'Geography', icon: IconWorld },
   { path: '/dashboard/health', label: 'Health & Risk', icon: IconActivity },
-  { path: '/dashboard/partner', label: 'Partners', icon: IconUsers },
 ];
 
 const DashboardLayout = () => {

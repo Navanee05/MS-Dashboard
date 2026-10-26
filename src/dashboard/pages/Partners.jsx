@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { VERSIUM_ACTIVATED } from '../../data/versiumActivation';
 import { RAW_ONBOARD_ACCOUNTS, VERSIUM_ACCOUNTS } from '../../data/mockAccounts';
 
 const PAGE_SIZE = 20;
@@ -27,11 +28,13 @@ const PARTNERS = [
     ],
   },
   {
-    key: 'ineed',
-    label: 'Ineed',
+    key: 'bpr',
+    label: 'BPR',
     sub: 'Indonesia accounts',
     color: '#0284C7',
-    accounts: RAW_ONBOARD_ACCOUNTS.filter((a) => a.category === 'indonesia'),
+    accounts: RAW_ONBOARD_ACCOUNTS.filter(
+      (a) => a.category === 'indonesia' && !/resort/i.test(a.ClientName)
+    ),
     getStatus: (a) => a.RenewalStatus,
     getPlan: (a) => a.SubscribtionType,
     columns: [
@@ -45,6 +48,28 @@ const PARTNERS = [
       { h: 'Status', get: (a) => a.RenewalStatus, badge: true },
     ],
   },
+  {
+    key: 'vanguard',
+    label: 'Vanguard',
+    sub: 'Resort accounts',
+    color: '#F59E0B',
+    accounts: RAW_ONBOARD_ACCOUNTS.filter(
+      (a) => a.category === 'indonesia' && /resort/i.test(a.ClientName)
+    ),
+    getStatus: (a) => a.RenewalStatus,
+    getPlan: (a) => a.SubscribtionType,
+    columns: [
+      { h: 'Client Name', get: (a) => a.ClientName, bold: true },
+      { h: 'Email', get: (a) => a.Email, muted: true },
+      { h: 'Plan', get: (a) => a.SubscribtionType },
+      { h: 'Price', get: (a) => a.Price },
+      { h: 'Created', get: (a) => a.CreatedDt },
+      { h: 'Renewal Due', get: (a) => a.RenewalDue },
+      { h: 'Country', get: (a) => a.country },
+      { h: 'Status', get: (a) => a.RenewalStatus, badge: true },
+    ],
+  },
+
   {
     key: 'redington',
     label: 'Redington',
@@ -74,7 +99,11 @@ const Partners = () => {
   const list = partner.accounts;
   const activeCount = list.filter((a) => isActive(partner.getStatus(a))).length;
   const inactiveCount = list.length - activeCount;
-
+  const vActivated = VERSIUM_ACTIVATED.length;
+  const vExpired = VERSIUM_ACTIVATED.filter((a) => a.status === 'Expired').length;
+  const vLive = VERSIUM_ACTIVATED.filter((a) => a.status === 'Active').length;
+  const vNotActivated = list.length - vActivated;
+  const vRate = list.length > 0 ? ((vActivated / list.length) * 100).toFixed(1) : 0;
   const planCounts = {};
   list.forEach((a) => {
     const p = partner.getPlan(a) || 'Unknown';
@@ -105,11 +134,14 @@ const Partners = () => {
       <div className="section-label">Partner Overview</div>
 
       {/* Partner cards */}
-      <div className="kpi-row">
+      <div
+        className="kpi-row"
+        style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '12px' }}
+      >
         <div className="kpi-card">
           <div className="kpi-label">Total Partners</div>
           <div className="kpi-value">{PARTNERS.length}</div>
-          <div className="kpi-delta">Versium · Ineed · Redington</div>
+          <div className="kpi-delta">Versium · BPR · Vanguard · Redington</div>
         </div>
         {PARTNERS.map((p) => {
           const selected = p.key === selKey;
@@ -133,27 +165,64 @@ const Partners = () => {
       </div>
 
       {/* Selected partner summary */}
-      <div className="kpi-row">
-        <div className="kpi-card">
-          <div className="kpi-label">{partner.label} Accounts</div>
-          <div className="kpi-value">{list.length}</div>
+      {selKey === 'versium' ? (
+        <div
+          className="kpi-row"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))', gap: '12px' }}
+        >
+          {[
+            { label: 'All Accounts', value: list.length, sub: 'Total Versium accounts', color: 'var(--color-text-primary)' },
+            { label: 'Activated License', value: vActivated, sub: 'Accounts with license activated', color: '#0891B2' },
+            { label: 'Expired', value: vExpired, sub: `Out of ${vActivated} activated accounts`, color: '#dc2626' },
+            { label: 'Inactive / Not Activated', value: vNotActivated, sub: 'Accounts yet to be activated', color: 'var(--color-text-primary)' },
+            { label: 'Activation Rate', value: `${vRate}%`, sub: 'Activated share of all accounts', color: 'var(--color-text-primary)' },
+            { label: 'Live Accounts Today', value: vLive, sub: 'Activated with active license', color: '#059669' },
+          ].map((c) => (
+            <div
+              key={c.label}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                padding: '12px 14px',
+                borderRadius: '12px',
+                background: '#ffffff',
+                border: '1px solid var(--color-border-primary)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                {c.label}
+              </span>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 800, lineHeight: 1, color: c.color }}>
+                {c.value}
+              </div>
+              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{c.sub}</span>
+            </div>
+          ))}
         </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Active</div>
-          <div className="kpi-value" style={{ color: '#059669' }}>{activeCount}</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Expired / Inactive</div>
-          <div className="kpi-value" style={{ color: '#dc2626' }}>{inactiveCount}</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Active Rate</div>
-          <div className="kpi-value">
-            {list.length > 0 ? Math.round((activeCount / list.length) * 100) : 0}%
+      ) : (
+        <div className="kpi-row">
+          <div className="kpi-card">
+            <div className="kpi-label">{partner.label} Accounts</div>
+            <div className="kpi-value">{list.length}</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Active</div>
+            <div className="kpi-value" style={{ color: '#059669' }}>{activeCount}</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Expired / Inactive</div>
+            <div className="kpi-value" style={{ color: '#dc2626' }}>{inactiveCount}</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Active Rate</div>
+            <div className="kpi-value">
+              {list.length > 0 ? Math.round((activeCount / list.length) * 100) : 0}%
+            </div>
           </div>
         </div>
-      </div>
-
+      )}
       {/* Plan distribution */}
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-title">{partner.label} — Plan Distribution</div>
