@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { getGeographyData } from '../../api/dashboardApi';
 import { IconLoader2, IconSearch } from '@tabler/icons-react';
-import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid
-} from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 const tooltipStyle = {
   borderRadius: '12px',
@@ -155,7 +152,7 @@ const Geography = () => {
       </div>
 
       {/* Charts */}
-      <div className="two-col">
+      <div>
         {/* Donut */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -218,31 +215,7 @@ const Geography = () => {
             </div>
           </div>
         </div>
-
-        {/* Bar chart */}
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div className="card-title" style={{ margin: 0, fontFamily: 'var(--font-display)' }}>
-              Accounts by Country
-            </div>
-          </div>
-
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={data.regionDistribution} margin={{ top: 5, right: 15, left: -15, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--color-border-primary)" />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }} tickLine={false} axisLine={false} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: 'var(--color-text-muted)' }} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-              <Bar dataKey="value" name="Accounts" radius={[6, 6, 0, 0]}>
-                {data.regionDistribution.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
       </div>
-
       {/* Accounts Directory */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
