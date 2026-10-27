@@ -90,6 +90,7 @@ const countCategory = (c) => RAW_ONBOARD_ACCOUNTS.filter((a) => a.category === c
 
 // Versium accounts whose status is Expired are treated as churned (all Versium accounts are USA)
 const VERSIUM_EXPIRED = VERSIUM_ROSTER.filter((a) => a.RenewalStatus === 'Expired');
+const VERSIUM_ACTIVE_COUNT = VERSIUM_ROSTER.filter((a) => a.RenewalStatus === 'Active').length;
 
 // Indonesia accounts that are paying clients (counted under Active Paying as well)
 const PAYING_INDONESIA_IDS = ['10232', '10330'];
@@ -115,8 +116,6 @@ const COUNTS = {
 };
 
 // Shown when hovering a KPI card
-const VERSIUM_ACTIVE_COUNT = VERSIUM_ROSTER.filter((a) => a.RenewalStatus === 'Active').length;
-
 const BREAKDOWNS = {
   total: [
     { label: 'Direct', value: COUNTS.direct, color: '#FF1300' },
